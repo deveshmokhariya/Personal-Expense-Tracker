@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Expense Tracker</title>
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" xintegrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 700;
+        }
+        .summary-card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+        .summary-card:hover {
+            transform: translateY(-5px);
+        }
+        .summary-card .card-body {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .summary-card .icon {
+            font-size: 2.5rem;
+            opacity: 0.3;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            border-radius: 0.5rem;
+        }
+        .table {
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .table thead {
+            background-color: #e9ecef;
+        }
+        .modal-content {
+            border-radius: 0.75rem;
+        }
+        .filter-section {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 4rem 1rem;
+            background-color: #fff;
+            border-radius: 0.75rem;
+            border: 2px dashed #e9ecef;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            color: #ced4da;
+        }
+        .empty-state p {
+            color: #6c757d;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-wallet me-2"></i>Expense Tracker
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container my-4">
+        <!-- Summary Section -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card summary-card">
+                    <div class="card-body">
+                        <div>
+                            <h5 class="card-title text-secondary">Total Expenses</h5>
+                            <h2 class="card-text fw-bold" id="total-expenses">₹0.00</h2>
+                        </div>
+                        <i class="fas fa-rupee-sign icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Expense and Filters -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <h3 class="fw-bold mb-0">My Expenses</h3>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+                <i class="fas fa-plus me-2"></i>Add New Expense
+            </button>
+        </div>
+        
+        <!-- Filter Section -->
+        <div class="filter-section mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-5">
+                    <label for="filter-category" class="form-label">Filter by Category</label>
+                    <select id="filter-category" class="form-select">
+                        <option value="all" selected>All Categories</option>
+                        <option value="Food">Food</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Utilities">Utilities</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label for="filter-keyword" class="form-label">Search by Keyword</label>
+                    <input type="text" id="filter-keyword" class="form-control" placeholder="e.g., Coffee, Movie ticket">
+                </div>
+                 <div class="col-md-2 d-grid">
+                     <label class="form-label">&nbsp;</label>
+                    <button id="reset-filters-btn" class="btn btn-secondary">Reset</button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Expense Table -->
+        <div id="expense-list-container">
+             <!-- Expenses will be rendered here by JavaScript -->
+        </div>
+
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div class="modal fade" id="addExpenseModal" tabindex="-1" aria-labelledby="addExpenseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addExpenseModalLabel">Add a New Expense</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-expense-form">
+                        <div class="mb-3">
+                            <label for="expense-description" class="form-label">Description</label>
+                            <input type="text" class="form-control" id="expense-description" required placeholder="What did you spend on?">
+                        </div>
+                        <div class="mb-3">
+                            <label for="expense-amount" class="form-label">Amount (₹)</label>
+                            <input type="number" class="form-control" id="expense-amount" required min="0.01" step="0.01" placeholder="e.g., 15.50">
+                        </div>
+                        <div class="mb-3">
+                            <label for="expense-category" class="form-label">Category</label>
+                            <select class="form-select" id="expense-category" required>
+                                <option value="" disabled selected>Select a category</option>
+                                <option value="Food">Food</option>
+                                <option value="Transport">Transport</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Utilities">Utilities</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="expense-date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="expense-date" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Add Expense</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap 5 JS Bundle CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Set default date for new expense
+            $('#expense-date').val(new Date().toISOString().split('T')[0]);
+
+            // Load and display expenses on page load
+            displayExpenses();
+
+            // Handle Add Expense Form Submission
+            $('#add-expense-form').on('submit', function(e) {
+                e.preventDefault();
+
+                const expense = {
+                    id: Date.now(),
+                    description: $('#expense-description').val(),
+                    amount: parseFloat($('#expense-amount').val()),
+                    category: $('#expense-category').val(),
+                    date: $('#expense-date').val()
+                };
+
+                addExpense(expense);
+                this.reset();
+                $('#expense-date').val(new Date().toISOString().split('T')[0]);
+                $('#addExpenseModal').modal('hide');
+            });
+
+            // Event listener for filter changes
+            $('#filter-category, #filter-keyword').on('change keyup', function() {
+                displayExpenses();
+            });
+
+            // Event listener for reset button
+            $('#reset-filters-btn').on('click', function() {
+                $('#filter-category').val('all');
+                $('#filter-keyword').val('');
+                displayExpenses();
+            });
+
+            // Event Delegation for deleting an expense
+            $('#expense-list-container').on('click', '.delete-expense-btn', function() {
+                const expenseId = $(this).data('id');
+                deleteExpense(expenseId);
+            });
+        });
+
+        // --- LocalStorage Functions ---
+        function getExpenses() {
+            return JSON.parse(localStorage.getItem('expenses')) || [];
+        }
+
+        function saveExpenses(expenses) {
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+        }
+
+        // --- Core Application Functions ---
+        function addExpense(expense) {
+            const expenses = getExpenses();
+            expenses.push(expense);
+            // Sort expenses by date descending
+            expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+            saveExpenses(expenses);
+            displayExpenses();
+        }
+
+        function deleteExpense(id) {
+            let expenses = getExpenses();
+            expenses = expenses.filter(expense => expense.id !== id);
+            saveExpenses(expenses);
+            displayExpenses();
+        }
+        
+        function displayExpenses() {
+            const expenses = getExpenses();
+            const container = $('#expense-list-container');
+            container.empty();
+            
+            // Get filter values
+            const categoryFilter = $('#filter-category').val();
+            const keywordFilter = $('#filter-keyword').val().toLowerCase();
+
+            // Filter expenses
+            const filteredExpenses = expenses.filter(expense => {
+                const matchesCategory = categoryFilter === 'all' || expense.category === categoryFilter;
+                const matchesKeyword = expense.description.toLowerCase().includes(keywordFilter);
+                return matchesCategory && matchesKeyword;
+            });
+
+            if (filteredExpenses.length === 0) {
+                container.html(`
+                    <div class="empty-state">
+                        <i class="fas fa-search-dollar"></i>
+                        <p>No expenses found. <br>Try adjusting your filters or add a new expense!</p>
+                    </div>
+                `);
+                updateSummary(filteredExpenses); // Update summary to show $0.00
+                return;
+            }
+
+            const table = $(`
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">Date</th>
+                                <th scope="col">Description</th>
+                                <th scope="col">Category</th>
+                                <th scope="col" class="text-end">Amount</th>
+                                <th scope="col" class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expense-table-body"></tbody>
+                    </table>
+                </div>
+            `);
+
+            const tableBody = table.find('#expense-table-body');
+            
+            filteredExpenses.forEach(expense => {
+                const row = `
+                    <tr>
+                        <td>${new Date(expense.date).toLocaleDateString()}</td>
+                        <td>${expense.description}</td>
+                        <td><span class="badge bg-secondary">${expense.category}</span></td>
+                        <td class="text-end fw-bold">₹${expense.amount.toFixed(2)}</td>
+                        <td class="text-center">
+                            <button class="btn btn-outline-danger btn-sm delete-expense-btn" data-id="${expense.id}" title="Delete Expense">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.append(row);
+            });
+            
+            container.append(table);
+            updateSummary(filteredExpenses);
+        }
+
+        function updateSummary(expenses) {
+            const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            $('#total-expenses').text(`₹${total.toFixed(2)}`);
+        }
+    </script>
+</body>
+</html>
